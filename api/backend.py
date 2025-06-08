@@ -168,10 +168,18 @@ async def deepgram_proxy(request: Request):
             raise HTTPException(status_code=400, detail="No audio data provided")
         
         # Set up headers for Deepgram
+        # Debug the API key format (showing only first 3 chars for security)
+        if DEEPGRAM_API_KEY:
+            key_prefix = DEEPGRAM_API_KEY[:3] if len(DEEPGRAM_API_KEY) > 3 else "[empty]"
+            key_format = f"{key_prefix}...{len(DEEPGRAM_API_KEY)} chars"
+            print(f"Using Deepgram API key format: {key_format}")
+        
         headers = {
             "Authorization": f"Token {DEEPGRAM_API_KEY}",
             "Content-Type": content_type
         }
+        print(f"Authorization header: Token {DEEPGRAM_API_KEY[:3]}...")
+
         
         # Call Deepgram API
         print("Calling Deepgram API...")
