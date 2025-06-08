@@ -2,17 +2,17 @@
   "version": 2,
   "builds": [
     { "src": "frontend/**", "use": "@vercel/static" },
-    { "src": "backend/main.py", "use": "@vercel/python" },
-    { "src": "token_server/main.py", "use": "@vercel/python" }
+    { "src": "api/backend.py", "use": "@vercel/python" },
+    { "src": "api/token.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/api/stream", "dest": "backend/main.py" },
-    { "src": "/api/tts", "dest": "backend/main.py" },
-    { "src": "/api/health", "dest": "backend/main.py" },
-    { "src": "/api/deepgram-proxy", "dest": "backend/main.py" },
-    { "src": "/api/get-token", "dest": "token_server/main.py" },
-    { "src": "/api/token-health", "dest": "token_server/main.py" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
+    { "src": "/api/stream", "dest": "/api/backend.py" },
+    { "src": "/api/tts", "dest": "/api/backend.py" },
+    { "src": "/api/health", "dest": "/api/backend.py" },
+    { "src": "/api/deepgram-proxy", "dest": "/api/backend.py" },
+    { "src": "/api/get-token", "dest": "/api/token.py" },
+    { "src": "/api/token-health", "dest": "/api/token.py" },
+    { "src": "/(.*)", "dest": "/frontend/$1" }
   ],
   "env": {
     "ELEVENLABS_API_KEY": "${ELEVENLABS_API_KEY}",
