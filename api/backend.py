@@ -174,11 +174,13 @@ async def deepgram_proxy(request: Request):
             key_format = f"{key_prefix}...{len(DEEPGRAM_API_KEY)} chars"
             print(f"Using Deepgram API key format: {key_format}")
         
+        # Deepgram's newer API keys don't require the 'Token ' prefix
         headers = {
-            "Authorization": f"Token {DEEPGRAM_API_KEY}",
+            "Authorization": DEEPGRAM_API_KEY,  # Direct API key without 'Token ' prefix
             "Content-Type": content_type
         }
-        print(f"Authorization header: Token {DEEPGRAM_API_KEY[:3]}...")
+        print(f"Using direct authorization with key: '{DEEPGRAM_API_KEY[:3]}...'")
+
 
         
         # Call Deepgram API
