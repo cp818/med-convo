@@ -150,31 +150,64 @@ async def text_to_speech(request: Request):
 async def deepgram_proxy(request: Request):
     """Proxy requests to Deepgram API to avoid exposing API key to frontend"""
     try:
-        if not DEEPGRAM_API_KEY:
-            raise HTTPException(status_code=500, detail="Deepgram API key not configured")
+        # Debug information
+        print("Deepgram proxy called")
+        content_type = request.headers.get("Content-Type", "audio/webm")
+        print(f"Content-Type: {content_type}")
         
-        # Forward the request body to Deepgram
+        if not DEEPGRAM_API_KEY:
+            print("Deepgram API key not configured")
+            raise HTTPException(status_code=500, detail="Deepgram API key not configured")
+            
+        # Get the request body
         body = await request.body()
+        print(f"Request body size: {len(body)} bytes")
+        
+        if len(body) == 0:
+            print("Empty request body")
+            raise HTTPException(status_code=400, detail="No audio data provided")
+        
+        # Set up headers for Deepgram
         headers = {
             "Authorization": f"Token {DEEPGRAM_API_KEY}",
-            "Content-Type": request.headers.get("Content-Type", "audio/webm")
+            "Content-Type": content_type
         }
         
-        dg_response = requests.post(
-            "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&filler_words=false",
-            data=body,
-            headers=headers
-        )
+        # Call Deepgram API
+        print("Calling Deepgram API...")
+        dg_url = "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&filler_words=false"
         
-        if dg_response.status_code != 200:
-            raise HTTPException(status_code=dg_response.status_code, 
-                               detail=f"Deepgram API error: {dg_response.text}")
-        
-        return Response(
-            content=dg_response.content,
-            media_type="application/json"
-        )
+        try:
+            dg_response = requests.post(
+                dg_url,
+                data=body,
+                headers=headers,
+                timeout=10  # Add timeout to prevent hanging
+            )
+            
+            print(f"Deepgram response status: {dg_response.status_code}")
+            
+            if dg_response.status_code != 200:
+                print(f"Deepgram error: {dg_response.text}")
+                raise HTTPException(status_code=dg_response.status_code, 
+                                detail=f"Deepgram API error: {dg_response.text}")
+                
+            # Return the response from Deepgram
+            return Response(
+                content=dg_response.content,
+                media_type="application/json"
+            )
+            
+        except requests.exceptions.RequestException as req_err:
+            print(f"Request exception: {req_err}")
+            raise HTTPException(status_code=500, detail=f"Error connecting to Deepgram: {str(req_err)}")
     
+    except HTTPException as he:
+        # Re-raise HTTP exceptions
+        raise he
     except Exception as e:
-        print(f"Error in deepgram_proxy: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"Unexpected error in deepgram_proxy: {e}")
+        import traceback
+        traceback.print_exc()  # Print full traceback for debugging
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
